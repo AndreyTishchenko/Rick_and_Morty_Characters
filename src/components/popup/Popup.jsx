@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components';
 import { PopupEpisodes } from './PopupEpisodes';
 import { PopupHeader } from './PopupHeader';
 import { PopupInfo } from './PopupInfo';
-import { useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 
 export function Popup({ settings: { visible, content = {} }, setSettings }) {
   const {
@@ -28,6 +28,45 @@ export function Popup({ settings: { visible, content = {} }, setSettings }) {
     },
     [setSettings]
   );
+
+  useEffect(() => {
+    if (visible) {
+      const scrollY = window.scrollY;
+
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflowY = 'scroll';
+      document.body.style.width = '100%';
+
+      return () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.overflowY = '';
+        document.body.style.width = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        setSettings((prev) => ({ ...prev, visible: false }));
+      }
+    };
+
+    document.addEventListener('keydown', handleEsc);
+
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [visible, setSettings]);
 
   return (
     <PopupContainer onClick={togglePopup} visible={visible}>
